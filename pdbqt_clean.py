@@ -47,7 +47,7 @@ def remove_model_endmdl_lines(directory=".", inplace=False):
             outpath = filepath
         else:
             base, ext = os.path.splitext(filepath)
-            outpath = f"{base}_cleaned{ext}"
+            outpath = f"{base}{ext}"
 
         # Write the result
         with open(outpath, 'w') as f:
