@@ -34,7 +34,8 @@ conda activate ligprep_env
 pip install dimorphite-dl psutil
 ```
 
-## Quick Start
+## Step 1: SMILE to SDF
+SMI file containing list of ligands in SMILE format into multi-ligand example_ouput.sdf file which go through protonation and tautomerism and generate multi-ligand example_output_taut.sdf file. 
 
 1. Activate the env
 ```
@@ -43,7 +44,7 @@ conda activate ligprep_env
 
 2. Process SMILES and write SDF files
 ```
-python3 run_ligprep.py example_input.smi output_test -o results
+python3 run_ligprep.py example_input.smi example_output -o results
 ```
 
 3. Overwrite the existing content
@@ -53,7 +54,7 @@ python3 run_ligprep.py example_input.smi output_test -o results --overwrite
 
 4. Recommanded usage
 ```
-python run_ligprep.py example_input.smi output_test --ph 7.4 --ff UFF --num-cpus 18 -o results -l resultslog.txt -v
+python run_ligprep.py example_input.smi output_test --ph 7.4 -ff UFF --num-cpus 18 -o results -l resultslog.txt -v
 ```
 optimize the value of `--ph`, `--ff`, and `--num-cpus` as per requirement
 
@@ -78,7 +79,7 @@ conda deactivate
 - Linear speedup with CPU cores (95% parallel efficiency on typical hardware)
 - Typical throughput: ~5000 molecules/minute of 16 cores (including tautomer steps)
 
-# Further Task
+## Step 2: Multi-ligand SDF file to individual PDBQT file
 SDF library should be now prepared for docking. This required conversion of SDF into PDBQT, easily performed by openbabel
 
 1. Install openbabel in the env
@@ -95,4 +96,13 @@ obabel output_test_taut.sdf -O ligand_.pdbqt -m --minimize --ff UFF
 ```
 obabel output_test_taut.sdf -O ligand_.pdbqt --split --minimize --ff UFF
 ```
+
+## Step 3: PDBQT cleaning
+The PDBQT metadata retain the model information of the parent multi-ligand file which needs to be removed before docking.
+
+```
+python pdbqt_clean.py
+```
+This will read all the *.pdbqt files present in the current working directory and remove this information.
+
 # The ligand(s) are ready for docking
