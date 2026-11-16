@@ -2,7 +2,7 @@
 
 Ligand preparation pipeline: **SMILES → protonated 3D structures → pH-dependent low-energy tautomers**, written as SDF files with full provenance in the SD tags. Built on [RDKit](https://www.rdkit.org/) and [Dimorphite-DL](https://github.com/durrantlab/dimorphite_dl), with optional partial charges, and designed to feed docking tools such as [Meeko](https://github.com/forlilab/Meeko).
 
-Current version: **1.3.0** (see [CHANGELOG.md](CHANGELOG.md)).
+Current version: **1.3.0** (see version release).
 
 ```mermaid
 flowchart LR
