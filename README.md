@@ -6,7 +6,7 @@ Current version: **1.3.0** (see [CHANGELOG.md](CHANGELOG.md)).
 
 ```mermaid
 flowchart LR
-    A[".smi file"] --> B["Stage 1<br/>standardize<br/>protonate at pH<br/>3D, chair rings"]
+    A[".smi file"] --> B["Stage 1<br/>standardize,<br/>protonate at pH,<br/>3D, chair rings"]
     B --> C[("name.sdf<br/>1 record / molecule")]
     C --> D["Stage 2<br/>tautomers (SMARTS rules)<br/>re-check at pH<br/>3D + ring states<br/>partial charges"]
     D --> E[("name_taut.sdf")]
@@ -31,7 +31,7 @@ flowchart LR
 Requires **Python 3.10 or newer** (a Dimorphite-DL 2.x requirement).
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/BishalDebroy/ligprep
 cd ligprep
 python -m venv .venv && source .venv/bin/activate     # or use conda
 pip install -r requirements.txt
