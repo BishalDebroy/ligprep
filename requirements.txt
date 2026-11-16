@@ -1,4 +1,11 @@
-Python >= 3.10
-rdkit>=2023.03
-dimorphite-dl>=2.0,<3.0
+# Requires Python >= 3.10 (dimorphite-dl 2.x itself requires >=3.10)
+# Tested with RDKit 2025.09.5 and 2026.09.1
+rdkit>=2023.9.1
+# dimorphite-dl >= 2.1.0 is required for correct protonation: 2.0.x leaves aliphatic
+# amines neutral at pH 7.4 and ionises phenol and imidazole/triazole N-H.
+dimorphite-dl>=2.1.0,<3.0
 psutil>=5.9
+numpy
+
+# Optional - only needed for  --charge_model espaloma :
+#   pip install espaloma_charge dgl torch
