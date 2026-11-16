@@ -241,7 +241,3 @@ Measured on one CPU core with a deliberately ring-heavy test set: about 140 ms p
 ## Related tools
 
 [molscrub](https://pypi.org/project/molscrub/) (also published as Scrubber) is a closely related, independently developed ligand-preparation tool from the same group as Meeko, and [Meeko](https://github.com/forlilab/Meeko) prepares ligands for AutoDock and Vina. No code from either was used here. The `PartialCharge` storage convention is compatible with both.
-
-## License
-
-*Add your license here.*
