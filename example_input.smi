@@ -1,6 +1,81 @@
-# comment line
-CCO	Ethanol
+# =====================================================================
+# example_input.smi - demonstration input for run_ligprep.py
+#
+# Format : SMILES <TAB> name   (comma or space also work)
+# Lines starting with '#' and blank lines are ignored.
+# All 35 molecules below prepare successfully. Suggested run:
+#
+#   python run_ligprep.py example_input.smi demo -o results --ph 7.4 \
+#          -ff MMFF94 --charge_model gasteiger
+#
+# Expected: 35 records in demo.sdf, 41 in demo_taut.sdf, no failed file.
+# The protonation states described below need Dimorphite-DL >= 2.1.0
+# (older 2.0.x leaves amines neutral at pH 7.4 and ionises phenols).
+# =====================================================================
+
+# ---- 1. Protonation at pH 7.4 (Dimorphite-DL) -----------------------
+# acids become carboxylates, amines become ammonium ions,
+# amino acids become zwitterions
 CC(=O)O	Acetic_acid
-c1ccccc1O	Phenol
-C1=CC=C(C=C1)C(=O)O	Benzoic_acid   # invalid? valid
-C	Methane
+c1ccccc1C(=O)O	Benzoic_acid
+CC(=O)Oc1ccccc1C(=O)O	Aspirin
+CCN	Ethylamine
+CCN(CC)CC	Triethylamine
+CC(C)NCC(O)COc1cccc2ccccc12	Propranolol
+NCC(=O)O	Glycine_zwitterion
+
+# ---- 2. Stereochemistry is preserved --------------------------------
+C[C@H](N)C(=O)O	L-Alanine_S
+CC(C)Cc1ccc(cc1)[C@H](C)C(=O)O	S-Ibuprofen
+
+# ---- 3. Salts and counter-ions: the largest fragment is kept --------
+CC(=O)[O-].[Na+]	Sodium_acetate
+CC[NH3+].[Cl-]	Ethylamine_hydrochloride
+
+# ---- 4. Tautomers (SMARTS rules keep the low-energy forms) ----------
+# one tautomer is kept: the amide, not the imidic-acid enol
+CC(=O)Nc1ccccc1	Acetanilide
+# one tautomer is kept: the keto form, not the enol
+CC(=O)CC(=O)C	Acetylacetone
+# one tautomer is kept: the real imide, not an aromatic hydroxy-pyrrole
+O=C1CCC(=O)N1	Succinimide
+# one tautomer is kept: amino form, not the imino form
+Nc1ccccn1	2-Aminopyridine
+# two equally stable N-H tautomers are kept; the RDKit canonical one is
+# flagged Is_Canonical_Tautomer=1 and the other 0
+Cc1c[nH]cn1	4-Methylimidazole
+Cc1cc[nH]n1	3-Methylpyrazole
+Nc1ncnc2[nH]cnc12	Adenine
+Cn1c(=O)c2[nH]cnc2n(C)c1=O	Theophylline
+
+# ---- 5. Ring conformers: saturated six-membered rings become chairs --
+C1CCCCC1	Cyclohexane
+CC1CCCCC1	Methylcyclohexane
+# cis-1,2: two equally stable chairs -> two records (_ring1, _ring2)
+C[C@H]1CCCC[C@H]1C	cis-1,2-Dimethylcyclohexane
+# trans-1,2: only the diequatorial chair is low in energy -> one record
+C[C@H]1CCCC[C@@H]1C	trans-1,2-Dimethylcyclohexane
+# cis-decalin flips (two records); trans-decalin is rigid (one record)
+C1CC[C@H]2CCCC[C@H]2C1	cis-Decalin
+C1CC[C@H]2CCCC[C@@H]2C1	trans-Decalin
+C1CCOCC1	Tetrahydropyran
+C1COCCN1	Morpholine
+C1CN(CCN1)c1ccccc1	N-Phenylpiperazine
+C[C@@H]1CC[C@H]([C@@H](C1)O)C(C)C	L-Menthol
+# a ring forced out of a chair by its bicyclic cage: reported, not an error
+C1CC2CCC1CC2	Bicyclo222octane
+
+# ---- 6. Drug-like fragments ------------------------------------------
+CN1C=NC2=C1C(=O)N(C(=O)N2C)C	Caffeine
+NC(=O)c1cccnc1	Nicotinamide
+c1ccc2[nH]ccc2c1	Indole
+
+# ---- 7. Entries without a name get mol_<line number in this file> ----
+CCCCCC
+C1CCNCC1
+
+# ---- Optional: failure reporting -------------------------------------
+# Remove the leading '#' from the next two lines to see how invalid input
+# is reported in <basename>_failed.smi (the run itself still succeeds).
+#this_is_not_a_smiles	Broken_example
+#C1CC	Unclosed_ring_example
