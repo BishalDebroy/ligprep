@@ -1,15 +1,20 @@
 """
-protonate.py - Generate major protonation states at a given pH using Dimorphite-DL.
+protonate.py - Major protonation state at a given pH using Dimorphite-DL.
+
+Dimorphite-DL works on SMILES, so this returns a topology (no explicit hydrogens,
+no 3D); 3D coordinates are generated afterwards by conformers.py. Only the
+top-ranked state is used.
 """
 
 import logging
-from typing import Optional, List
+from importlib.metadata import PackageNotFoundError, version
+from typing import Optional, Tuple
 
 import dimorphite_dl
 from rdkit import Chem
-from rdkit.Chem import AllChem
 
 logger = logging.getLogger("ligprep")
+
 
 def protonate(
         mol: Chem.Mol,
@@ -19,16 +24,15 @@ def protonate(
         max_states: int = 1,
 ) -> Optional[Chem.Mol]:
     """
-    Return the best protonated mol at the specified pH (or range).
-    uses Dimorphite-DL; returns None if no valid state found.
+    Return the top-ranked protonation state at the specified pH (or pH range),
+    or None on error. If Dimorphite-DL proposes no change the input topology is
+    returned unchanged.
     """
     if min_ph is None:
         min_ph = pH
     if max_ph is None:
         max_ph = pH
 
-    # Dimorphite-DL operates on SMILES strings, not RDKit Mol objects, and
-    # expects a pH range; set equal values for a single pH.
     try:
         smi = Chem.MolToSmiles(Chem.RemoveHs(mol))
         variants = dimorphite_dl.protonate_smiles(
@@ -42,22 +46,36 @@ def protonate(
         return None
 
     if not variants:
-        # Fallback: add hydrogens at the input pH using RDKit only
-        return Chem.AddHs(mol)
+        return Chem.RemoveHs(mol)
 
-    # Take the first (dominant) state and rebuild a 3D, explicit-H mol,
-    # since protonation via SMILES loses the original conformer.
     best_mol = Chem.MolFromSmiles(variants[0])
     if best_mol is None:
         logger.warning(f"Could not parse protonated SMILES: {variants[0]}")
         return None
-
-    best_mol = Chem.AddHs(best_mol)
-    params = AllChem.ETKDGv3()
-    params.randomSeed = 42
-    status = AllChem.EmbedMolecule(best_mol, params)
-    if status != 0:
-        logger.warning(f"Embedding failed for protonated SMILES: {variants[0]}")
-        return None
-
     return best_mol
+
+
+# Dimorphite-DL 2.0.x leaves aliphatic amines neutral at pH 7.4 and ionises phenols and
+# imidazole/triazole N-H; 2.1.0 fixes this.
+MIN_RECOMMENDED_DIMORPHITE = (2, 1, 0)
+
+
+def _version_tuple(text: str) -> Tuple[int, int, int]:
+    parts = []
+    for piece in text.split(".")[:3]:
+        digits = "".join(ch for ch in piece if ch.isdigit())
+        parts.append(int(digits) if digits else 0)
+    return tuple(parts + [0] * (3 - len(parts)))
+
+
+def dimorphite_version_warning() -> Optional[str]:
+    """Warning text if the installed Dimorphite-DL is older than recommended, else None."""
+    try:
+        installed = version("dimorphite-dl")
+    except PackageNotFoundError:
+        return None
+    if _version_tuple(installed) >= MIN_RECOMMENDED_DIMORPHITE:
+        return None
+    return (f"Dimorphite-DL {installed} is installed. Versions before 2.1.0 leave aliphatic amines "
+            f"neutral at pH 7.4 and ionise phenols and imidazole/triazole N-H, so protonation states "
+            f"will be wrong. Upgrade with:  pip install -U \"dimorphite-dl>=2.1,<3.0\"")
