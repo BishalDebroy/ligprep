@@ -11,7 +11,7 @@ from typing import Generator, Tuple, Optional
 def detect_delimiter(line: str) -> Optional[str]:
     """
     Try to determine the delimiter (tab, comma, or whitespace) from a single
-    line, based on which one splits it into exactly two fields.
+    line, based on which one splits it into two or more fields (SMILES, name, extra columns).
 
     Returns None if the line is inconclusive - e.g. a bare SMILES with no
     name/ID column - rather than raising, since a single such line
@@ -22,7 +22,7 @@ def detect_delimiter(line: str) -> Optional[str]:
         return None
     for delim in ["\t", ",", " "]:
         parts = line.split(delim)
-        if len(parts) == 2:
+        if len(parts) >= 2:      # SMILES, name and optionally further columns
             return delim
     return None
 
@@ -31,7 +31,7 @@ def read_smiles(file_path: str) -> Generator[Tuple[str, str, int], None, None]:
     Yield (smiles, name, line number) from a SMILE file.
     Handle comment (#) and blank lines.
     Automatically detects delimiter by scanning for the first line that
-    unambiguously reveals it (exactly two fields); lines with only a bare
+    unambiguously reveals it (two or more fields); lines with only a bare
     SMILES and no name are tolerated anywhere in the file.
     """
     path = Path(file_path)
@@ -53,7 +53,7 @@ def read_smiles(file_path: str) -> Generator[Tuple[str, str, int], None, None]:
         return  # empty file
 
     if delimiter is None:
-        # No line in the file yielded exactly two fields - the file is
+        # No line in the file yielded two or more fields - the file is
         # likely entirely single-column SMILES (no name/ID column at all).
         # Whitespace is a safe default: such lines have nothing to split on.
         delimiter = " "
