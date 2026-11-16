@@ -2,7 +2,7 @@
 metadata.py - Build SD tags for first and second SDF entries.
 """
 
-from typing import Dict, Optional, Any
+from typing import Dict, Optional
 from importlib.metadata import version, PackageNotFoundError
 from rdkit import Chem
 
@@ -20,8 +20,8 @@ def first_sdf_tags(
         uuid: str,
         generation_date: str,
 ) -> Dict[str, str]:
-    """Return dictionary of SD tad name → value for first SDF."""
-    return{
+    """Return dictionary of SD tag name → value for first SDF."""
+    return {
         "Compound_Name": compound_name,
         "Original_SMILES": original_smi,
         "Canonical_SMILES": canonical_smi,
@@ -43,16 +43,28 @@ def second_sdf_tags(
         energy: Optional[float],
         energy_unit: str,
         opt_force_field: str,
+        *,
+        tautomer_smiles: str = "",
+        relative_energy: Optional[float] = None,   # vs lowest ring state of the SAME tautomer
+        ring_conformer: str = "NA",
+        ring_state_number: int = 1,
+        charge_model: str = "none",
 ) -> Dict[str, str]:
-    """Return tafs for a tautomer entry, retaining all first SDF fields."""
-    new_tag = dict(parent_tags) # Copy all original fields
+    """Return tags for a tautomer entry, retaining all first SDF fields."""
+    new_tag = {k: str(v) for k, v in parent_tags.items()}  # copy all original fields
     new_tag.update({
+        "Processing_Step": "tautomer_enumeration+3D_optimization",
         "Tautomer_Name": tautomer_name,
         "Tautomer_Number": str(tautomer_number),
+        "Tautomer_SMILES": tautomer_smiles,
         "Parent_compound": parent_tags["Compound_Name"],
         "Is_Canonical_Tautomer": "1" if is_canonical else "0",
         "Energy": f"{energy:.4f}" if energy is not None else "N/A",
+        "Ring_State_Relative_Energy": f"{relative_energy:.4f}" if relative_energy is not None else "N/A",
         "Energy_Unit": energy_unit,
         "Optimization_ForceField": opt_force_field,
+        "Ring_Conformer": ring_conformer,
+        "Ring_State_Number": str(ring_state_number),
+        "Charge_Model": charge_model,
     })
     return new_tag
